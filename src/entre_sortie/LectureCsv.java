@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import Donnees.BasesCSV;
 import Donnees.Client;
 import Donnees.Entrepot;
 import Donnees.Route;
@@ -161,7 +162,9 @@ public static List<Site> lectureSite(String chemin, String nomFichier) {
     	
     	List<Site> sites =lectureSite("Jeux_de_donnees" + File.separator + "petit", "init-sites-30-Carre.csv");
     	System.out.println("Sites : "+sites);
-        
+    	
+    	BasesCSV.BDD(clients, entrepots, routes, sites);
+    	
     }
 }
 
