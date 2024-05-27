@@ -1,56 +1,64 @@
-//package methodes;
-//
-//import AdjacencyList.AdjacencyListDirectedValuedGraph;
-//import Nodes.DirectedNode;
-//
-//public class Dijkstra {
-//	
-//	public static void Dijkstra(AdjacencyListDirectedValuedGraph al, DirectedNode s, int order) {
-//        int n = al.getNbNodes(); 
-//        int[] value = new int[n];
-//        boolean[] mark = new boolean[n];
-//        DirectedNode[] pred = new DirectedNode[n];
-//
-//        // Initialisation des structures de données
-//        for (int i = 0; i < n; i++) {
-//            value[i] = Integer.MAX_VALUE / 2;
-//            mark[i] = false;
-//            pred[i] = null;
-//        }
-//
-//        value[s.getLabel()] = 0; // Initialisation de la valeur du sommet source à 0
-//
-//        for (int i = 0; i < n; i++) {
-//            // Recherche du sommet non marqué avec la valeur minimale
-//            int min = Integer.MAX_VALUE / 2;
-//            DirectedNode nodeMin = null;
-//            for (int j = 0; j < n; j++) {
-//                if (!mark[j] && value[j] < min) {
-//                    min = value[j];
-//                    nodeMin = al.getNodes().get(j);
-//                }
-//            }
-//
-//            if (nodeMin == null) {
-//                break; // Tous les sommets atteignables ont été traités
-//            }
-//
-//            mark[nodeMin.getLabel()] = true;
-//
-//            // Mise à jour des successeurs du sommet choisi
-//            for (DirectedNode neighbor : nodeMin.getListSuccs()) {
-//                if (!mark[neighbor.getLabel()] && value[nodeMin.getLabel()] + nodeMin.getSuccs().get(neighbor) < value[neighbor.getLabel()]) {
-//                    value[neighbor.getLabel()] = value[nodeMin.getLabel()] + nodeMin.getSuccs().get(neighbor);
-//                    pred[neighbor.getLabel()] = nodeMin;
-//                }
-//            }
-//        }
-//
-//        // Affichage des résultats
-//        System.out.println("Distances depuis le sommet " + s + ":");
-//        for (int i = 0; i < n; i++) {
-//            System.out.println("Sommet " + i + " - Distance: " + value[i] + " - Prédécesseur: " + (pred[i] != null ? pred[i].getLabel() : "null"));
-//        }
-//    }
-//
-//}
+package methodes;
+
+import java.util.*;
+
+import Donnees.Graph;
+import Donnees.Route;
+import Donnees.Site;
+
+public class Dijkstra {
+    public static void dijkstra(Graph graph, int startId) {
+        Map<Integer, Double> distances = new HashMap<>();
+        Map<Integer, Integer> predecessors = new HashMap<>();
+        PriorityQueue<SiteDistance> queue = new PriorityQueue<>(Comparator.comparingDouble(sd -> sd.distance));
+
+        for (int id : graph.sites.keySet()) {
+            distances.put(id, Double.MAX_VALUE);
+        }
+        distances.put(startId, 0.0);
+        queue.add(new SiteDistance(startId, 0.0));
+
+        while (!queue.isEmpty()) {
+            SiteDistance current = queue.poll();
+            if (current.distance > distances.get(current.siteId)) continue;
+
+            List<Route> routesFromCurrent = graph.getRoutes(current.siteId);
+            if (routesFromCurrent != null) {
+                for (Route route : routesFromCurrent) {
+                    int neighborId = route.getDestination();
+                    if(current.siteId== route.getOrigine()) {
+                        double newDist = distances.get(current.siteId) ;
+//                                Math.sqrt(Math.pow(sites.getX() - sites.getX(), 2) + Math.pow(site.getY() - site.getY(), 2));
+//;								Math.sqrt(Math.pow(site1.getX() - site2.getX(), 2) + Math.pow(site1.getY() - site2.getY(), 2));
+
+
+                    }
+                    
+                    double newDist = distances.get(current.siteId);
+
+                    if (newDist < distances.get(neighborId)) {
+                        distances.put(neighborId, newDist);
+                        predecessors.put(neighborId, current.siteId);
+                        queue.add(new SiteDistance(neighborId, newDist));
+                    }
+                }
+            }
+        }
+
+        // Affichage des résultats
+        System.out.println("Distances depuis le site " + startId + ":");
+        for (int id : distances.keySet()) {
+            System.out.println("Site " + id + " - Distance: " + distances.get(id) + " - Prédécesseur: " + (predecessors.containsKey(id) ? predecessors.get(id) : "null"));
+        }
+    }
+
+    static class SiteDistance {
+        int siteId;
+        double distance;
+
+        public SiteDistance(int siteId, double distance) {
+            this.siteId = siteId;
+            this.distance = distance;
+        }
+    }
+}
