@@ -165,6 +165,12 @@ public static List<Site> lectureSite(String chemin, String nomFichier) {
     	System.out.println("Sites : "+sites);
     	
     	BasesCSV.BDD(clients, entrepots, routes, sites);
+    	int ee = BasesCSV.RequeteEntrepot();
+    	System.out.println("Entrepot : "+ee);
+    	List<Integer> df= BasesCSV.RequeteStock();
+    	System.out.println("Stock : "+df);
+    	List<Integer> dr= BasesCSV.RequeteCout_fixe();
+    	System.out.println("cout_fixes : "+dr);
     	
     }
 }
