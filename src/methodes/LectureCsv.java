@@ -152,19 +152,25 @@ public static List<Site> lectureSite(String chemin, String nomFichier) {
 }
     
     public static void main(String[] args) {
-    	List<Client> clients =lectureClient("Jeux_de_donnees" + File.separator + "grand", "init-clients-500-200-Carre.csv");
+    	List<Client> clients =lectureClient("Jeux_de_donnees" + File.separator + "petit", "init-clients-30-10-Carre.csv");
     	System.out.println("Clients : "+clients);
     	 
-    	List<Entrepot> entrepots =lectureEntrepot("Jeux_de_donnees" + File.separator + "grand", "init-entrepots-500-100-Carre.csv");
+    	List<Entrepot> entrepots =lectureEntrepot("Jeux_de_donnees" + File.separator + "petit", "init-entrepots-30-5-Carre.csv");
     	System.out.println("Entrepots : "+entrepots);
     	
-    	List<Route> routes =lectureRoute("Jeux_de_donnees" + File.separator + "grand", "init-routes-500-750-Carre.csv");
+    	List<Route> routes =lectureRoute("Jeux_de_donnees" + File.separator + "petit", "init-routes-30-45-Carre.csv");
     	System.out.println("Routes : "+routes);
     	
-    	List<Site> sites =lectureSite("Jeux_de_donnees" + File.separator + "grand", "init-sites-500-Carre.csv");
+    	List<Site> sites =lectureSite("Jeux_de_donnees" + File.separator + "petit", "init-sites-30-Carre.csv");
     	System.out.println("Sites : "+sites);
     	
     	BasesCSV.BDD(clients, entrepots, routes, sites);
+    	int ee = BasesCSV.RequeteEntrepot();
+    	System.out.println("Entrepot : "+ee);
+    	List<Integer> df= BasesCSV.RequeteStock();
+    	System.out.println("Stock : "+df);
+    	List<Integer> dr= BasesCSV.RequeteCout_fixe();
+    	System.out.println("cout_fixes : "+dr);
     	
     }
 }
