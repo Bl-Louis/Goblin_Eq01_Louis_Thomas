@@ -61,7 +61,7 @@ public class LectureTxt {
 	        } catch (NumberFormatException e) {
 	            System.out.println("Erreur de format de nombre : " + e.getMessage());
 	        }
-	            System.out.println(clientLivre.size());
+	            //System.out.println(clientLivre.size());
 
 	        return clientLivre.size();
 	    }

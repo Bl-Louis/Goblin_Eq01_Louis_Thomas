@@ -3,6 +3,7 @@ package methodes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import Donnees.BasesCSV;
 import Donnees.Data;
 import Donnees.Route;
 import Donnees.Site;
@@ -13,9 +14,9 @@ import java.io.IOException;
 import java.util.List;
 
 public class EcritureJson {
-    public static void EcrireJson(double[] capacity_facility,
-    		double[] fixed_cost_facility,
-    		double[] demand_customer,
+    public static void EcrireJson(List<Integer> capacity_facility,
+    		List<Integer> fixed_cost_facility,
+    		List<Integer> demand_customer,
     		int[][] cost_matrix,
 			int num_facility_locations, 
 			int num_customers) throws IOException {
@@ -44,12 +45,13 @@ public class EcritureJson {
 
     public static void main(String[] args) {
         try {
-        	double[] capacity_facility = {15.0, 17.0, 12.0};
-        	double[] fixed_cost_facility = {10.0, 9.0, 8.0};
-        	double[] demand_customer = {5.0, 5.0, 5.0, 5.0, 5.0};
-        	int[][] cost_matrix = FloydWarshall.floydWarshall(LectureCsv.lectureSite("Jeux_de_donnees" + File.separator + "grand", "init-sites-500-Carre.csv"), LectureCsv.lectureRoute("Jeux_de_donnees" + File.separator + "grand", "init-routes-500-750-Carre.csv"));
-        	int num_facility_locations = 3;
-        	int num_customers = 5;
+        	List<Integer> capacity_facility = BasesCSV.RequeteStock();
+            List<Integer> fixed_cost_facility = BasesCSV.RequeteCout_fixe();
+            List<Integer> demand_customer = LectureTxt.lectureCommandeStock("Jeux_de_donnees" + File.separator + "petit", "init-bordereau-commande-2021-12-25.txt");
+        	int[][] cost_matrix = FloydWarshall.floydWarshall(LectureCsv.lectureSite("Jeux_de_donnees" + File.separator + "petit", "init-sites-30-Carre.csv"), 
+        													  LectureCsv.lectureRoute("Jeux_de_donnees" + File.separator + "petit", "init-routes-30-45-Carre.csv"));
+            int num_facility_locations = BasesCSV.RequeteEntrepot();
+            int num_customers = LectureTxt.lectureCommandeClient("Jeux_de_donnees" + File.separator + "petit", "init-bordereau-commande-2021-12-25.txt");
         	
             EcrireJson(capacity_facility,
         			fixed_cost_facility,
