@@ -3,6 +3,7 @@ package Donnees;
 public class Route {
 	private int origine;
 	private int destination;
+	private int distance;
 	
 	public Route(int origine, int destination) {
 		super();
@@ -21,6 +22,16 @@ public class Route {
 	public int getDestination() {
 		return destination;
 	}
+
+	public int getDistance() {
+		return distance;
+	}
+
+	public void setDistance(int distance) {
+		this.distance = distance;
+	}
+	
+	
 	
 	
 	
