@@ -1,4 +1,4 @@
-package Donnees;
+package methodes;
 
 import java.io.File;
 import java.sql.Connection;
@@ -7,12 +7,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import Donnees.Commande;
-import methodes.LectureTxt;
-public class BasesCSV {
+import java.util.Map;
+import java.util.StringJoiner;
 
-	public static void BDD(List<Client> clients, List<Entrepot> entrepots, List<Route> routes, List<Site> sites) {
+import Donnees.Client;
+import Donnees.Entrepot;
+import Donnees.Route;
+import Donnees.Site;
+
+public class MethodesBDD {
+
+	public static void BDD(List<Client> clients, List<Entrepot> entrepots, List<Route> routes, List<Site> sites) {	    
 		try {
 			Class.forName("org.hsqldb.jdbcDriver");
 		} catch (ClassNotFoundException e) {
@@ -120,16 +129,109 @@ public class BasesCSV {
 					statement.executeUpdate(requete);
 				}
 			}
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+	public static void BDDToutesLesRoutes(List<Integer> idOrigineList, List<Integer> idDestinationList, List<Integer> distanceList) {
+		String requete;
+		String url = "jdbc:hsqldb:file:database" + File.separator + "basic;shutdown=true";
+		String login = "sa";
+		String password = "";
+		try (Connection connection = DriverManager.getConnection(url, login, password)) {
+			requete = "DROP TABLE IF EXISTS toutesLesRoutes;";
+			try (Statement statement = connection.createStatement()) {
+				statement.executeUpdate(requete);
+			}
+
+			requete = "CREATE TABLE toutesLesRoutes ("
+					+ "idOrigine INT,"
+					+ "idDestination INT,"
+					+ "distance INT,"
+					+ "PRIMARY KEY(idOrigine,idDestination));";
+			try (Statement statement = connection.createStatement()) {
+				statement.executeUpdate(requete);
+			}
+
+			for (int i = 0; i < idOrigineList.size(); i++) {
+				int idOrigine = idOrigineList.get(i);
+				int idDestination = idDestinationList.get(i);
+				int distance = distanceList.get(i);
+
+				requete = "INSERT INTO toutesLesRoutes (idOrigine, idDestination, distance) VALUES ("
+						+ idOrigine + ", "
+						+ idDestination + ", "
+						+ distance + ");";
+				try (Statement statement = connection.createStatement()) {
+					statement.executeUpdate(requete);
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	public static int[][] extractDistanceMatrixForIDs() {
+		List<Integer> entrepotDispo = LectureBordereauCommandeTxt.lectureCommandeEntrepot();
+		Collections.sort(entrepotDispo); // Trier la liste ordre croissanr      
+
+		// Création d'une map pour mapper les ID à des indices dans la matrice
+		Map<Integer, Integer> idToIndex = new HashMap<>();
+		for (int i = 0; i < entrepotDispo.size(); i++) {
+			idToIndex.put(entrepotDispo.get(i), i);
+		}
+
+		// Création d'une matrice pour stocker les distances
+		int n = entrepotDispo.size();
+		int[][] distanceMatrix = new int[n][n];
+		for (int i = 0; i < n; i++) {
+			Arrays.fill(distanceMatrix[i], Integer.MAX_VALUE / 2); // Initialiser avec des distances maximales
+		}
+
+		// Mettre les distances de la diagonale à 0
+		for (int i = 0; i < n; i++) {
+			distanceMatrix[i][i] = 0;
+		}
+
+		// Connexion à la base de données
+		try (Connection connection = DriverManager.getConnection("jdbc:hsqldb:file:database" + File.separator + "basic;shutdown=true", "sa", "")) {
+			// Préparation de la requête SQL
+			StringJoiner idList = new StringJoiner(",", "(", ")");
+			for (Integer id : entrepotDispo) {
+				idList.add(id.toString());
+			}
+			String requete = "SELECT * FROM ToutesLesRoutes WHERE idOrigine IN " + idList.toString() + " AND idDestination IN " + idList.toString();
+
+			// Exécution de la requête
+			try (Statement statement = connection.createStatement();
+					ResultSet resultSet = statement.executeQuery(requete)) {
+				while (resultSet.next()) {
+					int idOrigine = resultSet.getInt("idOrigine");
+					int idDestination = resultSet.getInt("idDestination");
+					int distance = resultSet.getInt("distance");
+					// Vérifier que les ID sont dans la liste spécifiée et les ajouter à la matrice
+					if (idToIndex.containsKey(idOrigine) && idToIndex.containsKey(idDestination)) {
+						int indexOrigine = idToIndex.get(idOrigine);
+						int indexDestination = idToIndex.get(idDestination);
+						distanceMatrix[indexOrigine][indexDestination] = distance;
+					}
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return distanceMatrix;
+	}
+
 
 	public static List<Integer> RequeteStock() {
 		List<Integer> stockEntrepotDispo = new ArrayList<>();
 		List<Integer> entrepotDispo = new ArrayList<>();
-		entrepotDispo= LectureTxt.lectureCommandeEntrepot("Jeux_de_donnees" + File.separator + "petit", "init-bordereau-commande-2021-12-25.txt");
+		entrepotDispo= LectureBordereauCommandeTxt.lectureCommandeEntrepot();
 		try {
 			Class.forName("org.hsqldb.jdbcDriver");
 		} catch (ClassNotFoundException e) {
@@ -166,7 +268,7 @@ public class BasesCSV {
 	public static List<Integer> RequeteCout_fixe() {
 		List<Integer> cout_fixesEntrepotDispo = new ArrayList<>();
 		List<Integer> entrepotDispo = new ArrayList<>();
-		entrepotDispo= LectureTxt.lectureCommandeEntrepot("Jeux_de_donnees" + File.separator + "petit", "init-bordereau-commande-2021-12-25.txt");
+		entrepotDispo= LectureBordereauCommandeTxt.lectureCommandeEntrepot();
 		try {
 			Class.forName("org.hsqldb.jdbcDriver");
 		} catch (ClassNotFoundException e) {
@@ -178,7 +280,7 @@ public class BasesCSV {
 		String password = "";
 
 		try (Connection connection = DriverManager.getConnection(url, login, password)) {
-			entrepotDispo= LectureTxt.lectureCommandeEntrepot("Jeux_de_donnees" + File.separator + "petit", "init-bordereau-commande-2021-12-25.txt");
+			entrepotDispo= LectureBordereauCommandeTxt.lectureCommandeEntrepot();
 			for (int i = 0; i < entrepotDispo.size(); i++) {
 				String requete = "SELECT * FROM entrepots WHERE id_entrepot = "
 						+ entrepotDispo.get(i);
@@ -200,11 +302,10 @@ public class BasesCSV {
 		return cout_fixesEntrepotDispo;
 	}
 
-
 	public static int RequeteEntrepot() {
 		List <Integer> NbEntrepotDispo = new ArrayList<>();
 		List<Integer> entrepotDispo = new ArrayList<>();
-		entrepotDispo= LectureTxt.lectureCommandeEntrepot("Jeux_de_donnees" + File.separator + "petit", "init-bordereau-commande-2021-12-25.txt");
+		entrepotDispo= LectureBordereauCommandeTxt.lectureCommandeEntrepot();
 		try {
 			Class.forName("org.hsqldb.jdbcDriver");
 		} catch (ClassNotFoundException e) {
@@ -237,6 +338,61 @@ public class BasesCSV {
 		}
 		return NbEntrepotDispo.size();
 	}
+
+
+	public static List<Route> extractRoutes() {
+		List<Route> routes = new ArrayList<>();
+		
+		String url = "jdbc:hsqldb:file:database" + File.separator + "basic;shutdown=true";
+		String login = "sa";
+		String password = "";
+		
+		try (Connection connection = DriverManager.getConnection(url, login, password)) {
+			String requete = "SELECT* FROM routes";
+			try (Statement statement = connection.createStatement();
+					ResultSet resultSet = statement.executeQuery(requete)) {
+
+				while (resultSet.next()) {
+					int origine = resultSet.getInt("origine");
+					int destination = resultSet.getInt("destination");
+					routes.add(new Route(origine, destination));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return routes;
+	}
+	
+	public static List<Site> extractSite() {
+		List<Site> sites = new ArrayList<>();
+		
+		String url = "jdbc:hsqldb:file:database" + File.separator + "basic;shutdown=true";
+		String login = "sa";
+		String password = "";
+		
+		try (Connection connection = DriverManager.getConnection(url, login, password)) {
+			String requete = "SELECT* FROM sites";
+			try (Statement statement = connection.createStatement();
+					ResultSet resultSet = statement.executeQuery(requete)) {
+
+				while (resultSet.next()) {
+					int id_site = resultSet.getInt("id_site");
+					int x = resultSet.getInt("x");
+					int y = resultSet.getInt("y");
+
+					sites.add(new Site(id_site, x,y));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return sites;
+	}
+
+
 	public static void afficherTable(String nomTable) {
 		String url = "jdbc:hsqldb:file:" + "database" + File.separator + "basic" + ";shutdown=true";
 		String login = "sa";
@@ -266,9 +422,28 @@ public class BasesCSV {
 	}
 
 	public static void main(String[] args) {
-		String[] tables = {"clients", "entrepots", "routes", "sites"};
+
+		String[] tables = {"clients", "entrepots", "routes", "sites","toutesLesRoutes"};
 		for (String table : tables) {
 			afficherTable(table);
 		}
+		//List<Route> routes = extractRoutes();
+		//System.out.println(routes);
+		
+		//List<Site> sites = extractSite();
+		//System.out.println(sites);
+
+		// Appel de la méthode pour extraire la matrice de distances
+		int[][] distanceMatrix = extractDistanceMatrixForIDs();
+
+		// Affichage de la matrice de distances
+		System.out.println("Matrice de distances:");
+		for (int i = 0; i < distanceMatrix.length; i++) {
+			for (int j = 0; j < distanceMatrix[i].length; j++) {
+				System.out.print(distanceMatrix[i][j] + "\t");
+			}
+			System.out.println();
+		}
+
 	}
 }
