@@ -420,6 +420,53 @@ public class MethodesBDD {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void MajStock() {
+        List<Integer> MajStock = new ArrayList<>();
+        List<Integer> entrepotClient = new ArrayList<>();
+        List<String> clientServis = new ArrayList<>();
+        List<Integer> quantite = new ArrayList<>();
+        
+        entrepotClient = EcritureBordereauLivraisonTxt.generationBordereau();
+        quantite = LectureBordereauCommandeTxt.lectureCommandeQuantite();
+        clientServis=LectureBordereauCommandeTxt.lectureCommandeClient();
+        try {
+            Class.forName("org.hsqldb.jdbcDriver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        String url = "jdbc:hsqldb:file:database" + File.separator + "basic;shutdown=true";
+        String login = "sa";
+        String password = "";
+
+        try (Connection connection = DriverManager.getConnection(url, login, password)) {
+            for (int i = 0; i < entrepotClient.size(); i++) {
+                String requete = "SELECT * FROM entrepots WHERE id_entrepot = " + entrepotClient.get(i);
+                try (Statement statement = connection.createStatement()) {
+                    try (ResultSet resultSet = statement.executeQuery(requete)) {
+                        if (resultSet.next()) {
+                            int currentStock = resultSet.getInt("stock");
+                            int updatedStock = currentStock - quantite.get(i);
+                            if (updatedStock < 0) {
+                                System.out.println("Attention livraison impossible, le stock de l'entrepot " + entrepotClient.get(i) + " est inférieur à 0 (" + updatedStock + ") après mise à jour.");
+                                updatedStock = currentStock; 
+                                System.out.println("Le client  " + clientServis.get(i) + "n'a pas pu être servis ");
+                            }
+                            MajStock.add(updatedStock);
+                            requete = "UPDATE entrepots SET stock = " + updatedStock + " WHERE id_entrepot = " + entrepotClient.get(i);
+                            try (Statement updateStatement = connection.createStatement()) {
+                                updateStatement.executeUpdate(requete);
+                            }
+                        }
+                    }
+            }
+            }
+        } catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	public static void main(String[] args) {
 

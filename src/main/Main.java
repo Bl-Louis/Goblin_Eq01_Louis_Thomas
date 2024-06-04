@@ -3,14 +3,14 @@ package main;
 import methodes.AlgoCheminLePlusCourt;
 import methodes.EcritureBordereauLivraisonTxt;
 import methodes.EcritureFichierPulpJson;
-import methodes.LectureBordereauCommandeTxt;
 import methodes.LectureDonneesEntreesCsv;
 import methodes.MethodesBDD;
-import methodes.MethodesGraphe;
 import methodes.SolverPython; 
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+    	Scanner scanner = new Scanner(System.in);
         System.out.println("+------------------------------+");
         System.out.println("|            GOBLIN            |");
         System.out.println("+------------------------------+");
@@ -38,7 +38,16 @@ public class Main {
         
         System.out.println("+---------------EcritureBordereauLivraisonTxt--------------+");
         EcritureBordereauLivraisonTxt.main(args); // On lit le fichier en sortie du solver et on créer un fichier txt bordereau de livraison
+        System.out.println("Voulez-vous mettre à jour le stock ? (oui/non)");
         
+        String userInput = scanner.nextLine();
+        if (userInput.equalsIgnoreCase("oui")) {
+            MethodesBDD.MajStock();
+        }
+        else {
+            System.out.println("Les stocks des entrepots n'ont pas été mis à jour");
+        }
+    
         System.out.println("+----------------------------------+");
         System.out.println("|            FIN GOBLIN            |");
         System.out.println("+----------------------------------+");
