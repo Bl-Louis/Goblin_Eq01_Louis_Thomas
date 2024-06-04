@@ -42,7 +42,7 @@ public class MethodesBDD {
 					+ "nom VARCHAR(20),"
 					+ "mail VARCHAR(256),"
 					+ "id_site INT,"
-					+ "PRIMARY KEY(id_site));";
+					+ "PRIMARY KEY(mail));";
 			try (Statement statement = connection.createStatement()) {
 				statement.executeUpdate(requete);
 			}
@@ -176,52 +176,84 @@ public class MethodesBDD {
 
 	public static int[][] extractDistanceMatrixForIDs() {
 		List<Integer> entrepotDispo = LectureBordereauCommandeTxt.lectureCommandeEntrepot();
-		Collections.sort(entrepotDispo); // Trier la liste ordre croissanr      
+		List<String> clients =LectureBordereauCommandeTxt.lectureCommandeClient();
+		//Collections.sort(entrepotDispo); // Trier la liste ordre croissanr      
 
-		// Création d'une map pour mapper les ID à des indices dans la matrice
-		Map<Integer, Integer> idToIndex = new HashMap<>();
-		for (int i = 0; i < entrepotDispo.size(); i++) {
-			idToIndex.put(entrepotDispo.get(i), i);
-		}
+		List<Integer> listeIdSiteEntrepot = new ArrayList();
+		List<Integer> listeIdSiteClient = new ArrayList();	
 
-		// Création d'une matrice pour stocker les distances
-		int n = entrepotDispo.size();
-		int[][] distanceMatrix = new int[n][n];
-		for (int i = 0; i < n; i++) {
-			Arrays.fill(distanceMatrix[i], Integer.MAX_VALUE / 2); // Initialiser avec des distances maximales
-		}
-
-		// Mettre les distances de la diagonale à 0
-		for (int i = 0; i < n; i++) {
-			distanceMatrix[i][i] = 0;
-		}
-
-		// Connexion à la base de données
+		// Récupérer les ID_site des entrepot
 		try (Connection connection = DriverManager.getConnection("jdbc:hsqldb:file:database" + File.separator + "basic;shutdown=true", "sa", "")) {
-			// Préparation de la requête SQL
-			StringJoiner idList = new StringJoiner(",", "(", ")");
-			for (Integer id : entrepotDispo) {
-				idList.add(id.toString());
-			}
-			String requete = "SELECT * FROM ToutesLesRoutes WHERE idOrigine IN " + idList.toString() + " AND idDestination IN " + idList.toString();
 
-			// Exécution de la requête
-			try (Statement statement = connection.createStatement();
-					ResultSet resultSet = statement.executeQuery(requete)) {
-				while (resultSet.next()) {
-					int idOrigine = resultSet.getInt("idOrigine");
-					int idDestination = resultSet.getInt("idDestination");
-					int distance = resultSet.getInt("distance");
-					// Vérifier que les ID sont dans la liste spécifiée et les ajouter à la matrice
-					if (idToIndex.containsKey(idOrigine) && idToIndex.containsKey(idDestination)) {
-						int indexOrigine = idToIndex.get(idOrigine);
-						int indexDestination = idToIndex.get(idDestination);
-						distanceMatrix[indexOrigine][indexDestination] = distance;
+			for (int i = 0; i < entrepotDispo.size(); i++) { 
+				String requete = "SELECT * FROM entrepots WHERE id_entrepot = "+ entrepotDispo.get(i); 
+				try (Statement statement = connection.createStatement()) { 
+					try (ResultSet resultSet = statement.executeQuery(requete)) { 
+						while (resultSet.next()) { 
+							int idSiteEntrepot = resultSet.getInt("id_site");
+							listeIdSiteEntrepot.add(idSiteEntrepot); 
+						} 
 					}
 				}
 			}
+
+			//System.out.println(entrepotDispo);
+			//System.out.println(listeIdSiteEntrepot);
+
+			for (int i = 0; i < clients.size(); i++) {
+				String requete = "SELECT * FROM clients WHERE mail = "+"'"+ clients.get(i)+"'";
+				try (Statement statement = connection.createStatement()) {
+					try (ResultSet resultSet = statement.executeQuery(requete)) {
+						while (resultSet.next()) {
+							int idSiteClient = resultSet.getInt("id_site");
+							listeIdSiteClient.add(idSiteClient);
+						}
+					}
+				}
+			}
+			//System.out.println(clients);
+			//System.out.println(listeIdSiteClient);
+
 		} catch (SQLException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+		System.out.println(listeIdSiteEntrepot);
+
+		String listeIdSiteClientString = listeIdSiteClient.toString();
+		listeIdSiteClientString=listeIdSiteClientString.replace('[', '(');
+		listeIdSiteClientString=listeIdSiteClientString.replace(']', ')');
+
+		String listeIdSiteEntrepotString = listeIdSiteEntrepot.toString();
+		listeIdSiteEntrepotString=listeIdSiteEntrepotString.replace('[', '(');
+		listeIdSiteEntrepotString=listeIdSiteEntrepotString.replace(']', ')');
+		System.out.println(listeIdSiteEntrepotString);
+		System.out.println(listeIdSiteClientString);
+
+
+		// Création d'une matrice pour stocker les distances
+		int entrepot = entrepotDispo.size();
+		int client = clients.size();
+		int[][] distanceMatrix = new int[entrepot][client];
+
+		// Connexion à la base de données
+
+		try (Connection connection =DriverManager.getConnection("jdbc:hsqldb:file:database" + File.separator +"basic;shutdown=true", "sa", "")) { // Préparation de la requête SQL 
+			for (int c = 0; c < clients.size(); c++) {
+				for (int e = 0; e < entrepotDispo.size(); e++) {
+					String requete = "SELECT * FROM ToutesLesRoutes WHERE idOrigine =  " +listeIdSiteEntrepot.get(e)+ " AND idDestination = " +listeIdSiteClient.get(c); // Exécution de la requête 
+					try (Statement statement = connection.createStatement(); 
+							ResultSet resultSet = statement.executeQuery(requete)) { 
+						while (resultSet.next()) { 
+							int distance =resultSet.getInt("distance"); // Vérifier que les ID sont dans la liste spécifiée et les ajouter à la matrice 
+							distanceMatrix[e][c] = distance; 
+						} 
+					} 
+				}
+			}
+
+		}catch(SQLException e) { 
+			e.printStackTrace(); 
 		}
 
 		return distanceMatrix;
@@ -342,11 +374,11 @@ public class MethodesBDD {
 
 	public static List<Route> extractRoutes() {
 		List<Route> routes = new ArrayList<>();
-		
+
 		String url = "jdbc:hsqldb:file:database" + File.separator + "basic;shutdown=true";
 		String login = "sa";
 		String password = "";
-		
+
 		try (Connection connection = DriverManager.getConnection(url, login, password)) {
 			String requete = "SELECT* FROM routes";
 			try (Statement statement = connection.createStatement();
@@ -364,14 +396,14 @@ public class MethodesBDD {
 
 		return routes;
 	}
-	
+
 	public static List<Site> extractSite() {
 		List<Site> sites = new ArrayList<>();
-		
+
 		String url = "jdbc:hsqldb:file:database" + File.separator + "basic;shutdown=true";
 		String login = "sa";
 		String password = "";
-		
+
 		try (Connection connection = DriverManager.getConnection(url, login, password)) {
 			String requete = "SELECT* FROM sites";
 			try (Statement statement = connection.createStatement();
@@ -420,49 +452,49 @@ public class MethodesBDD {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void MajStock() {
-        List<Integer> MajStock = new ArrayList<>();
-        List<Integer> entrepotClient = new ArrayList<>();
-        List<String> clientServis = new ArrayList<>();
-        List<Integer> quantite = new ArrayList<>();
-        
-        entrepotClient = EcritureBordereauLivraisonTxt.generationBordereau();
-        quantite = LectureBordereauCommandeTxt.lectureCommandeQuantite();
-        clientServis=LectureBordereauCommandeTxt.lectureCommandeClient();
-        try {
-            Class.forName("org.hsqldb.jdbcDriver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+		List<Integer> MajStock = new ArrayList<>();
+		List<Integer> entrepotClient = new ArrayList<>();
+		List<String> clientServis = new ArrayList<>();
+		List<Integer> quantite = new ArrayList<>();
 
-        String url = "jdbc:hsqldb:file:database" + File.separator + "basic;shutdown=true";
-        String login = "sa";
-        String password = "";
+		entrepotClient = EcritureBordereauLivraisonTxt.generationBordereau();
+		quantite = LectureBordereauCommandeTxt.lectureCommandeQuantite();
+		clientServis=LectureBordereauCommandeTxt.lectureCommandeClient();
+		try {
+			Class.forName("org.hsqldb.jdbcDriver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 
-        try (Connection connection = DriverManager.getConnection(url, login, password)) {
-            for (int i = 0; i < entrepotClient.size(); i++) {
-                String requete = "SELECT * FROM entrepots WHERE id_entrepot = " + entrepotClient.get(i);
-                try (Statement statement = connection.createStatement()) {
-                    try (ResultSet resultSet = statement.executeQuery(requete)) {
-                        if (resultSet.next()) {
-                            int currentStock = resultSet.getInt("stock");
-                            int updatedStock = currentStock - quantite.get(i);
-                            if (updatedStock < 0) {
-                                System.out.println("Attention livraison impossible, le stock de l'entrepot " + entrepotClient.get(i) + " est inférieur à 0 (" + updatedStock + ") après mise à jour.");
-                                updatedStock = currentStock; 
-                                System.out.println("Le client  " + clientServis.get(i) + "n'a pas pu être servis ");
-                            }
-                            MajStock.add(updatedStock);
-                            requete = "UPDATE entrepots SET stock = " + updatedStock + " WHERE id_entrepot = " + entrepotClient.get(i);
-                            try (Statement updateStatement = connection.createStatement()) {
-                                updateStatement.executeUpdate(requete);
-                            }
-                        }
-                    }
-            }
-            }
-        } catch (SQLException e) {
+		String url = "jdbc:hsqldb:file:database" + File.separator + "basic;shutdown=true";
+		String login = "sa";
+		String password = "";
+
+		try (Connection connection = DriverManager.getConnection(url, login, password)) {
+			for (int i = 0; i < entrepotClient.size(); i++) {
+				String requete = "SELECT * FROM entrepots WHERE id_entrepot = " + entrepotClient.get(i);
+				try (Statement statement = connection.createStatement()) {
+					try (ResultSet resultSet = statement.executeQuery(requete)) {
+						if (resultSet.next()) {
+							int currentStock = resultSet.getInt("stock");
+							int updatedStock = currentStock - quantite.get(i);
+							if (updatedStock < 0) {
+								System.out.println("Attention livraison impossible, le stock de l'entrepot " + entrepotClient.get(i) + " est inférieur à 0 (" + updatedStock + ") après mise à jour.");
+								updatedStock = currentStock; 
+								System.out.println("Le client  " + clientServis.get(i) + "n'a pas pu être servis ");
+							}
+							MajStock.add(updatedStock);
+							requete = "UPDATE entrepots SET stock = " + updatedStock + " WHERE id_entrepot = " + entrepotClient.get(i);
+							try (Statement updateStatement = connection.createStatement()) {
+								updateStatement.executeUpdate(requete);
+							}
+						}
+					}
+				}
+			}
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -470,13 +502,13 @@ public class MethodesBDD {
 
 	public static void main(String[] args) {
 
-		String[] tables = {"clients", "entrepots", "routes", "sites","toutesLesRoutes"};
-		for (String table : tables) {
-			afficherTable(table);
-		}
+		//String[] tables = {"clients", "entrepots", "routes", "sites","toutesLesRoutes"};
+		//for (String table : tables) {
+		//	afficherTable(table);
+		//}
 		//List<Route> routes = extractRoutes();
 		//System.out.println(routes);
-		
+
 		//List<Site> sites = extractSite();
 		//System.out.println(sites);
 

@@ -36,7 +36,7 @@ public class AlgoCheminLePlusCourt {
         for (int i = 0; i < sites.size(); i++) {
             for (int j = 0; j < sites.size(); j++) {
                 if (i != j && distanceMatrix[i][j] < Integer.MAX_VALUE / 2) {
-                    //System.out.println("Distance de " + sites.get(i).getId_site() + " à " + sites.get(j).getId_site() + ": " + distanceMatrix[i][j]);
+                    System.out.println("Distance de " + sites.get(i).getId_site() + " à " + sites.get(j).getId_site() + ": " + distanceMatrix[i][j]);
                     // Ajout des identifiants d'origine, de destination et des distances à leurs listes respectives
                     idOrigine.add(sites.get(i).getId_site());
                     idDestination.add(sites.get(j).getId_site());

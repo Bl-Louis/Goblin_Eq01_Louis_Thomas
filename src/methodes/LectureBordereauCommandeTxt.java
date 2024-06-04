@@ -10,6 +10,7 @@ import java.util.List;
 
 public class LectureBordereauCommandeTxt {
 	private static String cheminComplet ="Jeux_de_donnees" + File.separator + "grand"+ File.separator +"init-bordereau-commande-2021-01-18.txt"; 
+	//private static String cheminComplet ="Jeux_de_donnees" + File.separator + "petit"+ File.separator +"init-bordereau-commande-2021-12-25.txt"; 
 
     // Méthode pour lire les commandes des clients à partir d'un fichier texte
     public static  List<String> lectureCommandeClient() {

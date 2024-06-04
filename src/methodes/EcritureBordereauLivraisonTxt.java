@@ -40,21 +40,22 @@ public class EcritureBordereauLivraisonTxt {
 
 			// Créer une chaîne de caractères pour stocker la lecture du json -> On appelle read les données de lecture
 			StringBuilder read = new StringBuilder();
-			//read.append("Status: ").append(data.get("status")).append("\n"); // Ajoute le statut à la lecture
-			//read.append("Objective: ").append(data.get("objective")).append("\n\n"); // Ajoute l'objectif à la lecture
-
+			
 			List<Double> openFacilities = (List<Double>) data.get("openfacilities"); // Récupère la liste des installations ouvertes
 			List<Double> deliveriesForCustomer = (List<Double>) data.get("deliveriesfor_customer"); // Récupère la liste des livraisons pour les clients
 
 			List<Integer> openFacilitiesInt = convertDoubleToInt(openFacilities);
 			List<Integer> deliveriesForCustomerInt = convertDoubleToInt(deliveriesForCustomer);
+			
+			System.out.println(openFacilitiesInt);
+			System.out.println(deliveriesForCustomerInt);
 
 			for (int i = 0; i < openFacilitiesInt.size(); i++) {
-				entrepotOuvert.add(entrepotDispo.get(openFacilitiesInt.get(i) - 1));
+				entrepotOuvert.add(entrepotDispo.get(openFacilitiesInt.get(i) ));
 			}
 
 			for (int i = 0; i < deliveriesForCustomerInt.size(); i++) {
-				entrepotClient.add(entrepotDispo.get(deliveriesForCustomerInt.get(i) - 1));
+				entrepotClient.add(entrepotDispo.get(deliveriesForCustomerInt.get(i)));
 			}
 
 			for (int i = 0; i < deliveriesForCustomerInt.size(); i++) {
@@ -62,6 +63,9 @@ public class EcritureBordereauLivraisonTxt {
 			}
 			
 			read.append("\n").append("--       BORDEREAU DE LIVRAISON       --").append("\n\n"); 
+			
+			read.append("Cout de la livraison : ").append(data.get("objective")).append("\n\n"); // Ajoute l'objectif à la lecture
+
 			read.append("Entrepôts Ouverts: ").append(entrepotOuvert).append("\n\n");
 			for (int i = 0; i < ClientLivre.size(); i++) {
 				read.append("Client: ").append(ClientLivre.get(i)).append(" - Entrepôt: ").append(entrepotClient.get(i)).append("\n");

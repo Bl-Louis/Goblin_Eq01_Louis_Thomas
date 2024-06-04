@@ -16,7 +16,13 @@ public class LectureDonneesEntreesCsv {
 	private static String clients_fichier ="Jeux_de_donnees" + File.separator + "grand" + File.separator + "init-clients-500-200-Carre.csv"; 
 	private static String entrepots_fichier ="Jeux_de_donnees" + File.separator + "grand" + File.separator + "init-entrepots-500-100-Carre.csv"; 
 	private static String routes_fichier ="Jeux_de_donnees" + File.separator + "grand" + File.separator + "init-routes-500-750-Carre.csv"; 
-	private static String sites_fichier ="Jeux_de_donnees" + File.separator + "grand" + File.separator + "init-sites-500-Carre.csv"; 
+	private static String sites_fichier ="Jeux_de_donnees" + File.separator + "grand" + File.separator + "init-sites-500-Carre.csv";
+	
+//	private static String clients_fichier ="Jeux_de_donnees" + File.separator + "petit" + File.separator + "init-clients-30-10-Carre.csv"; 
+//	private static String entrepots_fichier ="Jeux_de_donnees" + File.separator + "petit" + File.separator + "init-entrepots-30-5-Carre.csv"; 
+//	private static String routes_fichier ="Jeux_de_donnees" + File.separator + "petit" + File.separator + "init-routes-30-45-Carre.csv"; 
+//	private static String sites_fichier ="Jeux_de_donnees" + File.separator + "petit" + File.separator + "init-sites-30-Carre.csv"; 
+
 
     
     // Méthode pour lire les données des clients à partir d'un fichier CSV
